@@ -1,0 +1,276 @@
+<!-- subdirectory_list.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Downloads - {{subdir}}</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 60px 20px 20px; /* Adjust top margin to create space for the fixed header */
+            position: relative; /* Make the body a positioning context */
+        }
+
+        h1 {
+            color: #333;
+            position: fixed;
+            top: 0;
+            left: 10px; /* Adjust the left value to your preference */
+            background-color: #fff; /* Add a background color to make it stand out */
+            padding: 10px;
+            margin: 0;
+            z-index: 1000; /* Ensure it's on top of other elements */
+            width: 100%; /* Full width */
+            box-sizing: border-box; /* Include padding and border in the total width */
+        }
+
+        ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .file-list {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 5px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            transition: background-color 0.3s;
+            word-wrap: break-word; /* Add word-wrap property */
+        }
+
+        li:hover {
+            background-color: #e5e5e5;
+        }
+
+        a {
+            text-decoration: none;
+            color: #007bff;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 8px 15px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            z-index: 1001; /* Ensure it's on top of the header */
+        }
+
+        .list-container {
+            margin-bottom: 70px; /* Adjusted margin for space below the lists */
+        }
+
+        .download-button {
+            position: fixed;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px 15px;
+            background-color: #4caf50;
+            color: #fff;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            z-index: 1001; /* Ensure it's on top of the header */
+            bottom: auto; /* Adjusted bottom position */
+        }
+
+        /* Mobile-friendly styles */
+        @media only screen and (max-width: 600px) {
+            h1 {
+                top: 10px;
+                font-size: 18px;
+                width: calc(100% - 80px); /* Adjust width to leave space for the back button */
+            }
+
+            h2 {
+                font-size: 15px;
+                width: calc(100% - 80px); /* Adjust width to leave space for the back button */
+            }
+
+            li {
+                /* ... (previous styles) ... */
+                position: relative;
+                flex-direction: column; /* Display file and size vertically */
+                flex-wrap: wrap;
+                white-space: normal; /* Allow the text to wrap */
+                display: block; /* Ensure the anchor is a block-level element to take full width */
+            }
+
+            ul {
+                list-style-type: none;
+                margin: 0;
+                padding: 0;
+            }
+
+            .file-size,
+            .subdirectory-size {
+                margin-left: 0;
+                margin-top: 5px; /* Adjusted margin for space between filename and size */
+                position: relative;
+                text-align: right;
+                flex-wrap: wrap;
+            }
+
+            .back-button {
+                padding: 6px 12px;
+                font-size: 14px;
+            }
+
+            .list-container {
+                margin-bottom: 30px; /* Adjusted margin for space below the lists on mobile */
+            }
+
+            .download-button {
+                position: fixed;
+                left: 50%;
+                transform: translateX(-50%);
+                padding: 8px 15px;
+                background-color: #4caf50;
+                color: #fff;
+                border: none;
+                border-radius: 20px;
+                cursor: pointer;
+                z-index: 1001; /* Ensure it's on top of the header */
+                bottom: auto; /* Adjusted bottom position */
+                }
+
+            .back-button {
+                position: fixed;
+                top: 15px;
+                right: 20px;
+                padding: 8px 15px;
+                background-color: #007bff;
+                color: #fff;
+                border: none;
+                border-radius: 20px;
+                cursor: pointer;
+                z-index: 1002; /* Ensure it's on top of the search bar */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header-container">
+        <button class="back-button" onclick="goBack()">Back</button>
+        <h1>{{ subdir }}</h1>
+    </div>
+
+    <div class="list-container">
+        <h2>Files:</h2>
+        <ul>
+            {% for item in file_list %}
+                <li>
+                    <a href="{{ url_for('download_file', directory=base_directory, subdirectory=subdir, filename=item) }}" download>{{ item }}</a>
+                    <span class="file-size"></span>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <h2>Directories:</h2>
+        <ul>
+            {% for item in subdir_list %}
+                <li>
+                    <a href="{{ url_for('list_subdirectory', base_directory=base_directory, subdirectory=subdir + '/' + item) }}">{{ item }}</a>
+                    <span class="file-size"></span>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <button class="download-button" onclick="downloadAll()">Download All</button>
+
+    <script>
+        function goBack() {
+            window.history.back();
+        }
+
+        function downloadAll() {
+            // Get the base_directory and subdirectory from the template
+            var base_directory = "{{ base_directory }}";
+            var subdirectory = "{{ subdir }}";
+
+            // Show an alert indicating that files are being archived
+            alert("IMPORTANT! \n\nFiles will be archived and might take a while. If total size is greater than 7 GB, download files individually as to not get timed-out by cloudflare. \n\nClick OK to start.");
+
+            // Create a form dynamically
+            var form = document.createElement("form");
+            form.action = "/download_all/" + base_directory + "/" + subdirectory;
+            form.method = "GET";
+
+            // Append the form to the body
+            document.body.appendChild(form);
+
+            // Submit the form
+            form.submit();
+
+            // Remove the form from the body after submission
+            document.body.removeChild(form);
+        }
+
+        function getFileSizes(directory, subdirectory) {
+            // Make an AJAX request to the Flask route for getting file sizes
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", "/request_get_file_size/" + directory + "/" + subdirectory, true);
+            var encodedSubdirectory = encodeURIComponent(subdirectory); // Encode subdirectory for URL
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    var fileSizes = JSON.parse(xhr.responseText);
+                    updateFileSizes(fileSizes);
+                } else {
+                        console.error("Error fetching file sizes:", xhr.statusText);
+                }
+            };
+            xhr.send();
+        }
+
+        function updateFileSizes(fileSizes) {
+            var fileElements = document.querySelectorAll('.file-size');
+            fileElements.forEach(function (element) {
+                var filename = element.previousElementSibling.textContent;
+                var size = fileSizes[filename] || 'N/A'; // Use 'N/A' if size is not available
+                element.textContent = formatFileSize(size);
+            });
+        }
+
+        function formatFileSize(size) {
+            if (size === 'N/A') {
+                return size;
+            }
+
+            const units = ['bytes', 'KB', 'MB', 'GB', 'TB'];
+
+            let i = 0;
+            while (size >= 1024 && i < units.length - 1) {
+                size /= 1024;
+                i++;
+            }
+
+            return size.toFixed(2) + ' ' + units[i];
+        }
+
+        // Call getFileSizes when the page loads
+        document.addEventListener("DOMContentLoaded", function () {
+            getFileSizes("{{ base_directory }}", "{{ subdir }}");
+        });
+
+        
+    </script>
+</body>
+</html>

@@ -1,0 +1,264 @@
+<!-- file_list.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Downloads - {{selected_directory}}</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 60px 20px 20px; /* Adjust top margin to create space for the fixed header */
+        }
+
+        h1 {
+            color: #333;
+            position: fixed;
+            top: 0;
+            left: 10px;
+            background-color: #fff;
+            padding: 10px;
+            margin: 0;
+            z-index: 1000;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .search-container {
+            width: 100%;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            position: fixed;
+            top: 57px; /* Adjusted top value to avoid overlap with the fixed header */
+            left: 10px;
+            right: 20px;
+            z-index: 1001;
+            margin-bottom: 20px; /* Adjusted margin to create space between header and search bar */
+            background-color: #fff; /* Set background color for the search container */
+            padding-bottom: 10px;
+        }
+
+        .search-title {
+            font-size: 18px;
+            margin-right: 0px;
+            background-color: #fff; /* Add background color for the title */
+            padding: 8px; /* Add padding for better visibility */
+            border-radius: 5px; /* Optional: Add border-radius for rounded corners */
+        }
+
+        .search-input {
+            flex: 1; /* Allow the input to grow and take up remaining space */
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 100%; /* Make the width 100% for responsiveness */
+            max-width: 300px; /* Limit the width of the search input */
+            transition: border-color 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        .header-container {
+            position: relative;
+            z-index: 1000;
+        }
+
+        .list-container {
+            margin-top: 105px; /* Adjust top margin to create space for the fixed header and title */
+            overflow-y: auto; /* Add scrollbar if the list overflows */
+        }
+
+        ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 5px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            transition: background-color 0.3s;
+            word-wrap: break-word; /* Add word-wrap property */
+        }
+
+        li:hover {
+            background-color: #e5e5e5;
+        }
+
+        a {
+            text-decoration: none;
+            color: #007bff;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 8px 15px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            z-index: 1002; /* Ensure it's on top of the search bar */
+        }
+		
+		.file-list {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+
+        @media only screen and (max-width: 600px) {
+            /* Adjust the max-width for smaller screens */
+            .search-input {
+                max-width: 100%; /* Allow the search input to take up the full width on smaller screens */
+            }
+
+            .search-input {
+                flex: 1; /* Allow the input to grow and take up remaining space */
+                padding: 10px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                width: 100%; /* Make the width 100% for responsiveness */
+                max-width: 260px; /* Limit the width of the search input */
+                transition: border-color 0.3s;
+            }
+
+            .back-button {
+                position: fixed;
+                top: 15px;
+                right: 20px;
+                padding: 8px 15px;
+                background-color: #007bff;
+                color: #fff;
+                border: none;
+                border-radius: 20px;
+                cursor: pointer;
+                z-index: 1002; /* Ensure it's on top of the search bar */
+            }
+			
+			.file-size {
+                margin-left: 0;
+                margin-top: 5px; /* Adjusted margin for space between filename and size */
+                position: relative;
+                text-align: right;
+                white-space: nowrap;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="header-container">
+        <button class="back-button" onclick="goBack()">Back</button>
+        <h1>{{selected_directory}}</h1>
+    </div>
+
+    <div class="search-container">
+        <div class="search-title">Search:</div>
+        <input type="text" class="search-input" id="searchInput" onkeyup="filterList()" placeholder="Type to search...">
+        <!-- You can add an icon or additional styling for the search button here if needed -->
+    </div>
+
+    <div class="list-container">
+        <ul id="fileList">
+            {% for directory, item_type, item_name in items %}
+                <li>
+                    {% if item_type == 'file' %}
+                        <a href="{{ url_for('download_file_top_level', directory=directory, filename=item_name) }}" download>{{ item_name }}</a>
+						<span class="file-size"></span>
+                    {% elif item_type == 'dir' %}
+                        <a href="{{ url_for('list_subdirectory', base_directory=directory, subdirectory=item_name) }}">{{ item_name }}</a>
+						<span class="file-size"></span>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+    
+
+    <script>
+        function goBack() {
+            window.history.back();
+        }
+
+        function filterList() {
+            var input, filter, ul, li, a, i, txtValue;
+            input = document.getElementById('searchInput');
+            filter = input.value.toUpperCase();
+            ul = document.getElementById('fileList');
+            li = ul.getElementsByTagName('li');
+
+            for (i = 0; i < li.length; i++) {
+                a = li[i].getElementsByTagName('a')[0];
+                txtValue = a.textContent || a.innerText;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    li[i].style.display = '';
+                } else {
+                    li[i].style.display = 'none';
+                }
+            }
+        }
+
+        function getFileSizes(directory) {
+            // Make an AJAX request to the Flask route for getting file sizes
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", "/request_get_file_size_top_level/" + directory, true);
+			var encodedDirectory = encodeURIComponent(directory);
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    var fileSizes = JSON.parse(xhr.responseText);
+                    updateFileSizes(fileSizes);
+                } else {
+                        console.error("Error fetching file sizes:", xhr.statusText);
+                }
+            };
+            xhr.send();
+        }
+
+        function updateFileSizes(fileSizes) {
+            var fileElements = document.querySelectorAll('.file-size');
+            fileElements.forEach(function (element) {
+                var filename = element.previousElementSibling.textContent;
+                var size = fileSizes[filename] || 'N/A'; // Use 'N/A' if size is not available
+                element.textContent = formatFileSize(size);
+            });
+        }
+
+        function formatFileSize(size) {
+            if (size === 'N/A') {
+                return size;
+            }
+
+            const units = ['bytes', 'KB', 'MB', 'GB', 'TB'];
+
+            let i = 0;
+            while (size >= 1024 && i < units.length - 1) {
+                size /= 1024;
+                i++;
+            }
+
+            return size.toFixed(2) + ' ' + units[i];
+        }
+
+        // Call getFileSizes when the page loads
+        document.addEventListener("DOMContentLoaded", function () {
+            getFileSizes("{{directory_path}}");
+        });
+        
+    </script>
+</body>
+</html>

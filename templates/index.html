@@ -1,0 +1,79 @@
+<!-- index.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Downloads</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        form {
+            display: inline-block;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f8f8f8;
+        }
+
+        label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        select {
+            padding: 5px;
+        }
+
+        button {
+            padding: 8px 15px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+		
+		/* Mobile-friendly styles */
+        @media only screen and (max-width: 600px) {
+			
+			label {
+            font-weight: bold;
+            margin-right: 0px;
+        }
+		
+			button {
+				padding: 6px 10px;
+				background-color: #4caf50;
+				color: white;
+				border: none;
+				border-radius: 3px;
+				cursor: pointer;
+			}
+		
+		}
+    </style>
+</head>
+<body>
+    <h1>Download Server</h1>
+    <form action="{{ url_for('list_files') }}" method="post">
+        <label for="options">Select a directory:</label>
+        <select name="options" id="options">
+            {% for key, value in combined_directories.items() %}
+                <option value="{{ key }}">{{ key }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">List Files</button>
+    </form>
+</body>
+</html>
